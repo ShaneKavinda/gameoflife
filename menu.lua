@@ -13,6 +13,9 @@ local animationSpeed = 1
 local gridSizeLabel
 local animationSpeedLabel
 
+local gridSizeSlider
+local animationSpeedSlider
+
 -- store the grid size chosen by the User
 local function onGridSizeSlider(event)
     gridSize = event.value
@@ -28,7 +31,7 @@ end
 -- Function to update gridSize and animationSpeed when sliders change
 local function updateSettings()
     gridSize = gridSizeSlider.value
-    animationSpeed = speedSlider.value
+    animationSpeed = animationSpeedSlider.value
 end
 
 local function onStartButtonTap(event)
@@ -68,7 +71,7 @@ function scene:create(event)
     sceneGroup:insert(gridSizeLabel)
 
     -- Create a grid size slider
-    local gridSizeSlider = widget.newSlider({
+    gridSizeSlider = widget.newSlider({
         x = display.contentCenterX,
         y = 150,
         width = 200,
@@ -87,7 +90,7 @@ function scene:create(event)
     sceneGroup:insert(animationSpeedLabel)
 
     -- Create an animation speed slider
-    local animationSpeedSlider = widget.newSlider({
+    animationSpeedSlider = widget.newSlider({
         x = display.contentCenterX,
         y = 250,
         width = 200,
@@ -96,14 +99,25 @@ function scene:create(event)
     })
     sceneGroup:insert(animationSpeedSlider)
 
-    -- Create a "Start Game" button
-    local startGameButton = widget.newButton({
+    local startButton = widget.newButton({
         label = "Start Game",
         x = display.contentCenterX,
-        y = 320,
-        onPress = onStartButtonTap,
+        y = 300,
+        onPress = function()
+            updateSettings()  -- Update settings before starting the game
+            
+            local options = {
+                effect = "fade",
+                time = 500,
+                params = {
+                    gridSize = gridSize,  -- Pass the gridSize
+                    animationSpeed = animationSpeed,  -- Pass the animationSpeed
+                },
+            }
+            
+            composer.gotoScene("gameplay", options)
+        end
     })
-    sceneGroup:insert(startGameButton)
 
     local loadGameButton = widget.newButton({
         label = "Load Game",

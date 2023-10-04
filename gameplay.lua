@@ -6,8 +6,9 @@ local scene = composer.newScene()
 local widget = require("widget")
 
 -- Get grid size and animation speed from menu.lua
-local gridSize = composer.getVariable("gridSize")
-local animationSpeed = composer.getVariable("animationSpeed")
+local gridSize
+local animationSpeed 
+
 
 -- Get game state from scene loadState
 local gameState = composer.getVariable("gameState")
@@ -222,6 +223,10 @@ end
 
 function scene:create(event)
     local sceneGroup = self.view
+
+     -- Retrieve grid size and animation speed from params if provided, otherwise use defaults
+     gridSize = event.params and event.params.gridSize or 10  -- Default grid size if not provided
+     animationSpeed = event.params and event.params.animationSpeed or 1.0  -- Default speed if not provided
 
     local gameState = composer.getVariable( gameState )
     if gameState then
