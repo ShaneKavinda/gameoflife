@@ -5,17 +5,16 @@ local scene = composer.newScene()
 
 local widget = require("widget")
 
--- Get grid size and animation speed from menu.lua
-local gridSize
-local animationSpeed 
+local gridSize = composer.getVariable( "gridSize" )
+local animationSpeed = composer.getVariable( "animationSpeed" )
 
+local cellSize = math.min(display.actualContentHeight, display.actualContentWidth)/gridSize  -- Size of each cell in pixels
 
 -- Get game state from scene loadState
 local gameState = composer.getVariable("gameState")
 
 -- Create a 2D grid to represent the Game of Life
 local grid = {}
-local cellSize = math.min(display.actualContentHeight, display.actualContentWidth)/gridSize  -- Size of each cell in pixels
 local cellGroup = display.newGroup()  -- Group to hold cell objects
 local isPaused = false  -- Flag to pause or resume the simulation
 
@@ -120,15 +119,13 @@ local activeTimer = nil
 
 -- Function to advance the simulation
 local function advanceSimulation()
-   
-
     -- Clear the active timer if it exists
     if activeTimer then
         timer.cancel(activeTimer)
     end
 
     if not isPaused then
-        local delay = animationSpeed * 1000  -- Convert animation speed to milliseconds
+        local delay = 1/animationSpeed * 1000  -- Convert animation speed to milliseconds
         calculateNextState()
         updateDisplay()
         -- Store the reference to the new timer
@@ -148,6 +145,7 @@ local function pauseButtonTap(event)
     if isPaused then
         pauseButton:setLabel("Resume")
         saveStateButton:setEnabled(true)  -- Enable the "Save State" button when paused
+
     else
         pauseButton:setLabel("Pause")
         saveStateButton:setEnabled(false)  -- Disable the "Save State" button when resumed
@@ -181,9 +179,7 @@ end
 
 -- Function to handle the "Main Menu" button tap event
 local function gotoMainMenu(event)
-     -- store the grid size and the animation speed to be used throughout the app
-     composer.setVariable("gridSize", gridSize)
-     composer.setVariable("animationSpeed", animationSpeed)
+    composer.removeScene( "gameplay" )  --removes the scene upon clicking: frees memory
     -- go to the scene "Menu"
     composer.gotoScene( "menu",{effect="fade", time=500} )
 end
@@ -224,11 +220,11 @@ end
 function scene:create(event)
     local sceneGroup = self.view
 
-     -- Retrieve grid size and animation speed from params if provided, otherwise use defaults
-     gridSize = event.params and event.params.gridSize or 10  -- Default grid size if not provided
-     animationSpeed = event.params and event.params.animationSpeed or 1.0  -- Default speed if not provided
+    -- Get gridSize and animationSpeed from composer variables
+    local gridSize = composer.getVariable("gridSize" )
+    local animationSpeed = composer.getVariable( "animationSpeed" )
 
-    local gameState = composer.getVariable( gameState )
+    local gameState = composer.getVariable( "gameState" )
     if gameState then
         initializeGridFromState(gameState)  -- use the loaded game state to initialize the grid
     else
@@ -278,6 +274,18 @@ function scene:create(event)
     advanceSimulation()
 end
 
+function scene:show(event)
+    local sceneGroup = self.view
+    local gridSize = composer.getVariable("gridSize")
+    local animationSpeed = composer.getVariable("animationSpeed")
+    if event.phase == "will" then
+        startNewGame()
+    elseif event.phase == "did" then
+        startNewGame()
+    end
+end
+
 scene:addEventListener("create", scene)
+scene:addEventListener("show", scene)
 
 return scene

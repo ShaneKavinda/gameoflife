@@ -5,7 +5,6 @@ local scene = composer.newScene()
 
 local widget = require("widget")
 
--- Add default values for the grid size and the animation speed
 local gridSize = 5
 local animationSpeed = 1
 
@@ -41,11 +40,13 @@ local function onStartButtonTap(event)
     composer.setVariable("animationSpeed", animationSpeed)
 
     -- transition to the "gameplay" scene
-    composer.gotoScene("gameplay", {effect="fade", time=500})
+    composer.gotoScene("gameplay", {effect="fade", time=500, params ={reload = true}})
+    return true
 end
 
 local function onLoadGameButtonTap(event)
     composer.gotoScene("loadState", { effect = "fade", time = 500 })
+    return true
 end
 
 function scene:create(event)
@@ -103,21 +104,9 @@ function scene:create(event)
         label = "Start Game",
         x = display.contentCenterX,
         y = 300,
-        onPress = function()
-            updateSettings()  -- Update settings before starting the game
-            
-            local options = {
-                effect = "fade",
-                time = 500,
-                params = {
-                    gridSize = gridSize,  -- Pass the gridSize
-                    animationSpeed = animationSpeed,  -- Pass the animationSpeed
-                },
-            }
-            
-            composer.gotoScene("gameplay", options)
-        end
+        onPress = onStartButtonTap,
     })
+    sceneGroup:insert(startButton)
 
     local loadGameButton = widget.newButton({
         label = "Load Game",
@@ -129,6 +118,12 @@ function scene:create(event)
     
 end
 
-scene:addEventListener("create", scene)
+function scene:show(event)
+    gridSize = composer.setVariable( "gridSize", gridSizeSlider.value )
+    animationSpeed =composer.setVariable( "animationSpeed", animationSpeedSlider.value )
+end
 
+
+scene:addEventListener("create", scene)
+scene:addEventListener("show", scene)
 return scene
