@@ -9,6 +9,9 @@ local widget = require("widget")
 local gridSize = composer.getVariable("gridSize")
 local animationSpeed = composer.getVariable("animationSpeed")
 
+-- Get game state from scene loadState
+local gameState = composer.getVariable("gameState")
+
 -- Create a 2D grid to represent the Game of Life
 local grid = {}
 local cellSize = math.min(display.actualContentHeight, display.actualContentWidth)/gridSize  -- Size of each cell in pixels
@@ -184,11 +187,49 @@ local function gotoMainMenu(event)
     composer.gotoScene( "menu",{effect="fade", time=500} )
 end
 
+-- Function to initialize the grid from a provided game state string
+local function initializeGridFromState(gameState)
+    -- Split the gameState string into rows
+    local rows = {}
+    for row in string.gmatch(gameState, "[^\n]+") do
+        table.insert(rows, row)
+    end
+
+    -- Initialize the grid based on the parsed rows
+    for i = 1, gridSize do
+        grid[i] = {}
+        local rowValues = {}
+        for value in string.gmatch(rows[i], "%S+") do
+            table.insert(rowValues, tonumber(value))
+        end
+
+        if #rowValues >= gridSize then
+            for j = 1, gridSize do
+                grid[i][j] = rowValues[j]
+            end
+        else
+            print("Error: Invalid game state format.")
+            -- You might want to handle this error condition in an appropriate way
+        end
+    end
+end
+
+-- start a the game with a new randomized seed
+function startNewGame()
+    initializeGridRandomly()
+    updateDisplay()
+end
 
 function scene:create(event)
     local sceneGroup = self.view
 
-    initializeGridRandomly()
+    local gameState = composer.getVariable( gameState )
+    if gameState then
+        initializeGridFromState(gameState)  -- use the loaded game state to initialize the grid
+    else
+        initializeGridRandomly()
+    end
+
     createCells()
     sceneGroup:insert(cellGroup)
 
@@ -216,6 +257,14 @@ function scene:create(event)
         onPress = gotoMainMenu,
     } )
     sceneGroup:insert(homeButton)
+
+    local newGameButton = widget.newButton({
+        label = "New Game",
+        x = display.contentCenterX + display.actualContentWidth/4,
+        y = display.contentHeight - 20,
+        onPress = startNewGame,
+    })
+    sceneGroup:insert(newGameButton)
 
     -- Store the buttons in scene properties
     sceneGroup.pauseButton = pauseButton

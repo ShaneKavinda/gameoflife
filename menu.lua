@@ -25,8 +25,15 @@ local function onAnimationSlider(event)
     animationSpeedLabel.text = "Animation Speed: " .. animationSpeed
 end
 
+-- Function to update gridSize and animationSpeed when sliders change
+local function updateSettings()
+    gridSize = gridSizeSlider.value
+    animationSpeed = speedSlider.value
+end
+
 local function onStartButtonTap(event)
     -- store the grid size and the animation speed to be used throughout the app
+    updateSettings()
     composer.setVariable("gridSize", gridSize)
     composer.setVariable("animationSpeed", animationSpeed)
 
