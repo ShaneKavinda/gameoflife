@@ -34,6 +34,10 @@ local function onStartButtonTap(event)
     composer.gotoScene("gameplay", {effect="fade", time=500})
 end
 
+local function onLoadGameButtonTap(event)
+    composer.gotoScene("loadState", { effect = "fade", time = 500 })
+end
+
 function scene:create(event)
     local sceneGroup = self.view
 
@@ -93,6 +97,15 @@ function scene:create(event)
         onPress = onStartButtonTap,
     })
     sceneGroup:insert(startGameButton)
+
+    local loadGameButton = widget.newButton({
+        label = "Load Game",
+        x = display.contentCenterX,
+        y = 360,
+        onPress = onLoadGameButtonTap,
+    })
+    sceneGroup:insert(loadGameButton)
+    
 end
 
 scene:addEventListener("create", scene)

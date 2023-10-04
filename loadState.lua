@@ -4,6 +4,7 @@ local composer = require("composer")
 local scene = composer.newScene()
 
 local widget = require("widget")
+local lfs = require("lfs")  -- lua file system module
 
 local savedStates = {}  -- Table to store saved game states
 
@@ -25,8 +26,22 @@ local function loadSelectedState(event)
     -- Store the selected state's filename in a global variable to access it in gameplay.lua
     composer.setVariable("selectedState", selectedState)
 
-    composer.gotoScene("gameplay", { effect = "fade", time = 500 })  -- Transition back to gameplay.lua
+    -- Read the contents of the selected file
+    local filePath = system.pathForFile(selectedState, system.DocumentsDirectory)
+    local file = io.open(filePath, "r")
+
+    if file then
+        -- Read the file content into a global variable (gameState)
+        composer.setVariable("gameState", file:read("*all"))
+        io.close(file)
+
+        -- Transition back to gameplay.lua
+        composer.gotoScene("gameplay", { effect = "fade", time = 500 })
+    else
+        print("Error: Unable to open the selected file for reading")
+    end
 end
+
 
 -- Create a scrollView widget to list saved game states
 local scrollView = widget.newScrollView({
