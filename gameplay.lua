@@ -41,7 +41,7 @@ local function createCells()
                 cellSize
             )
             cell.anchorX, cell.anchorY = 0.5, 0.5
-            cell:setFillColor(grid[i][j], grid[i][j], grid[i][j])
+            cell:setFillColor(0.2,1.0,0.6)  -- colour if the cell is alive
             cellGroup:insert(cell)
 
             -- Toggle cell state when tapped
@@ -49,7 +49,7 @@ local function createCells()
                 if not isPaused then
                     if grid[i][j] == 0 then
                         grid[i][j] = 1
-                        cell:setFillColor(1, 1, 1)
+                        cell:setFillColor(0.2,1.0,0.6)  -- colour if the cell is alive
                     else
                         grid[i][j] = 0
                         cell:setFillColor(0, 0, 0)
@@ -109,7 +109,11 @@ local function updateDisplay()
     for i = 1, gridSize do
         for j = 1, gridSize do
             local cell = cellGroup[(i - 1) * gridSize + j]
-            cell:setFillColor(grid[i][j], grid[i][j], grid[i][j])
+            if grid[i][j] == 1 then
+                cell:setFillColor(0.2,1.0,0.6)  -- colour if the cell is alive
+            else
+                cell:setFillColor(0,0,0)
+            end
         end
     end
 end

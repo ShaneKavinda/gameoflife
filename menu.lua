@@ -60,6 +60,7 @@ function scene:create(event)
         fontSize = 24,
         font = native.systemFontBold,
     })
+    titleLabel:setFillColor(0.2,1.0,0.6)  -- change text colour to a green
     sceneGroup:insert(titleLabel)
 
     -- Create and display a label for grid size
