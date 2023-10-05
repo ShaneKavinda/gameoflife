@@ -159,26 +159,10 @@ local function pauseButtonTap(event)
     return true  -- Prevents touch propagation to objects below the button
 end
 
--- Function to handle the "Save State" button tap event
-local function saveStateButtonTap(event)
-    local sceneGroup = event.target.parent  -- Get the parent group of the button
-    local filePath = system.pathForFile("game_state.txt", system.DocumentsDirectory)
-    local file = io.open(filePath, "w")
-
-    if file then
-        for i = 1, gridSize do
-            for j = 1, gridSize do
-                file:write(grid[i][j] .. " ")
-            end
-            file:write("\n")
-        end
-        io.close(file)
-        print("Game state saved to game_state.txt")
-    else
-        print("Error: Unable to open the file for writing")
-    end
-
-    return true  -- Prevents touch propagation to objects below the button
+-- Prompts the user to a new scene to Save the game state
+local function onSaveStateButtonTap(event)
+    composer.gotoScene("saveState", { effect = "fade", time = 500 })
+    return true
 end
 
 -- Function to handle the "Main Menu" button tap event
@@ -250,8 +234,7 @@ function scene:create(event)
         label = "Save State",
         x = display.contentCenterX + display.actualContentWidth/4,
         y = display.contentHeight - 50,
-        enabled = false,  -- Initially disabled when not paused
-        onPress = saveStateButtonTap,
+        onPress = onSaveStateButtonTap,
     })
     sceneGroup:insert(saveStateButton)
 
