@@ -12,6 +12,12 @@ local errorText
 local function saveGameState()
     local fileName = fileNameTextBox.text
 
+    -- Check if the file name is empty
+    if fileName == "" then
+        errorText.text = "File name cannot be empty"
+        return true
+    end
+
     -- Check if the file name already exists
     local filePath = system.pathForFile(fileName .. ".json", system.DocumentsDirectory)
     local file = io.open(filePath, "r")
@@ -108,7 +114,7 @@ function scene:create(event)
         x = display.contentCenterX,
         y = 250,
         fontSize = 16,
-        fillColor = { 1, 0, 0 },
+        fillColor = { 1, 0, 0 },    -- color red for error messages
         enabled = false,
     })
     sceneGroup:insert(errorText)
