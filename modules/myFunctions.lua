@@ -35,40 +35,23 @@ function saveFile(fileName)
     file = nil
 end
 
-function calculateNextState(grid, gridSize)
-    local newGrid = {}
-    for row = 1, gridSize do
-        newGrid[row] = {}
-        for column = 1, gridSize do
-            -- Check the neighbors
-            local neighbours = 0
-            for i = -1, 1 do
-                for j = -1, 1 do
-                    -- Calculate the neighbor's position with wrap-around
-                    local n_row = ((row + i - 1 - 1) % gridSize) + 1
-                    local n_col = ((column + j - 1 - 1) % gridSize) + 1
-                    if not (i == 0 and j == 0) and (grid[n_row][n_col] == 1) then
-                        neighbours = neighbours + 1
-                    end
-                end
-            end
 
-            -- Check if the cell will be alive in the next iteration
-            if grid[row][column] == 1 then
-                if neighbours < 2 or neighbours > 3 then
-                    newGrid[row][column] = 0
-                else
-                    newGrid[row][column] = 1
-                end
-            else
-                if neighbours == 3 then
-                    newGrid[row][column] = 1
-                else
-                    newGrid[row][column] = 0
-                end
+function countNeighbors(grid)
+    local neighbours = 0
+    for i = 1,3 do
+        for j = 1,3 do
+            if not (i == 2 and j == 2) and (grid[i][j] == 1) then
+                neighbours = neighbours + 1
             end
         end
     end
+    return neighbours
+end
 
-    return newGrid
+function isAliveNext(neighbours)
+   if neighbours == 3 then
+        return "alive"
+   else
+        return "dead"
+   end
 end

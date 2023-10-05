@@ -1,37 +1,40 @@
 module(..., package.seeall)  -- need this to make things visible
 
-function testAdd()
-	assert_equal(add(2,2), 4)
-end 
 
-function testSaveFunction()
+function test_SaveFunction()
 	assert_equal(saveFile("testState"),"File already exists. Enter a different file name.")
 end
 
-state1 = {{0,0,0,0,0},
-{0,1,1,0,0},
-{0,1,1,0,0} ,
-{0,0,0,0,0},
-{0,0,0,0,0}}
-gridSize = 5
-function testNextIteration()
-	assert_equal(calculateNextState(state1, gridSize), {{0,0,0,0,0},
-	{0,1,1,0,0},
-	{0,1,1,0,0} ,
-	{0,0,0,0,0},
-	{0,0,0,0,0}})
+
+-- Test if the program counts neighbours correctly
+case1 = {{1,1,1}, {1,0,0}, {0,0,0}}
+function test_countNeighbours()
+	assert_equal(countNeighbors(case1), 4)
 end
 
-state2 = {{0,0,0,0,0},
-{0,1,0,0,0},
-{0,0,1,0,0},
-{0,0,0,1,0},
-{0,0,0,0,0}}
+case2 = {{0,0,1}, {0,0,1}, {0,0,0}}
+function test_countNeighbours2()
+	assert_equal(countNeighbors(case2), 2)
+end
 
-function testNextIteration2()
-	assert_equal(calculateNextState(state2, gridSize), {{0,0,0,0,0},
-	{0,0,0,0,0},
-	{0,0,1,0,0},
-	{0,0,0,0,0},
-	{0,0,0,0,0}})
+case3 = {{1,1,1}, {0,1,1}, {1,0,0}}
+function test_countNeighbours3()
+	assert_equal(countNeighbors(case3), 5)
+end
+
+-- check if the cell remains alive in the next state
+
+function test_isAliveNext1()
+	local neighbours = 0
+	assert_equal(isAliveNext(neighbours),"dead")
+end
+
+function test_isAliveNext2()
+	local neighbours = 3
+	assert_equal(isAliveNext(neighbours),"alive")
+end
+
+function test_isAliveNext3()
+	local neighbours = 7
+	assert_equal(isAliveNext(neighbours),"dead")
 end

@@ -243,7 +243,7 @@ function scene:create(event)
     local homeButton = widget.newButton( {
         label = "Main Menu",
         x = display.contentCenterX/4,
-        y = display.contentHeight - 20,
+        y = display.contentHeight - 10,
         onPress = gotoMainMenu,
     } )
     sceneGroup:insert(homeButton)
@@ -251,7 +251,7 @@ function scene:create(event)
     local newGameButton = widget.newButton({
         label = "New Game",
         x = display.contentCenterX + display.actualContentWidth/4,
-        y = display.contentHeight - 20,
+        y = display.contentHeight - 10,
         onPress = startNewGame,
     })
     sceneGroup:insert(newGameButton)

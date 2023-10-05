@@ -101,6 +101,7 @@ function scene:create(event)
     })
     sceneGroup:insert(animationSpeedSlider)
 
+    -- Create a start button to start the Game
     local startButton = widget.newButton({
         label = "Start Game",
         x = display.contentCenterX,
@@ -109,6 +110,7 @@ function scene:create(event)
     })
     sceneGroup:insert(startButton)
 
+    -- Create a button to load a previously saved game.
     local loadGameButton = widget.newButton({
         label = "Load Game",
         x = display.contentCenterX,
