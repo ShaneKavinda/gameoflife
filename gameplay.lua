@@ -16,7 +16,9 @@ local gameState = composer.getVariable("gameState")
 -- Create a 2D grid to represent the Game of Life
 local grid = {}
 local cellGroup = display.newGroup()  -- Group to hold cell objects
+
 local isPaused = false  -- Flag to pause or resume the simulation
+local canToggleCells = false  -- Flag to allow cell state toggling when paused
 
 local sceneGroup  -- Declare sceneGroup to make it accessible across functions
 
@@ -29,6 +31,24 @@ local function initializeGridRandomly()
         end
     end
 end
+
+
+-- Function to toggle cell state when tapped (only when paused)
+local function toggleCellState(event)
+    local cell = event.target
+    local row, column = cell.row, cell.column
+
+    if isPaused and canToggleCells then
+        if grid[row][column] == 0 then
+            grid[row][column] = 1
+            cell:setFillColor(0.2,1.0,0.6)  -- colour if the cell is alive
+        else
+            grid[row][column] = 0
+            cell:setFillColor(0, 0, 0)
+        end
+    end
+end
+
 
 -- Function to create cells based on the grid
 local function createCells()
@@ -44,18 +64,12 @@ local function createCells()
             cell:setFillColor(0.2,1.0,0.6)  -- colour if the cell is alive
             cellGroup:insert(cell)
 
-            -- Toggle cell state when tapped
-            cell:addEventListener("tap", function(event)
-                if not isPaused then
-                    if grid[i][j] == 0 then
-                        grid[i][j] = 1
-                        cell:setFillColor(0.2,1.0,0.6)  -- colour if the cell is alive
-                    else
-                        grid[i][j] = 0
-                        cell:setFillColor(0, 0, 0)
-                    end
-                end
-            end)
+             -- Set cell properties for row and column
+             cell.row = i
+             cell.column = j
+             
+            -- Add tap listener to toggle cell state
+            cell:addEventListener("tap", toggleCellState)
         end
     end
 end
@@ -129,7 +143,7 @@ local function advanceSimulation()
     end
 
     if not isPaused then
-        local delay = 1/animationSpeed * 1000  -- Convert animation speed to milliseconds
+        local delay = 1000/animationSpeed  -- Convert animation speed to milliseconds
         calculateNextState()
         updateDisplay()
         -- Store the reference to the new timer
@@ -149,10 +163,11 @@ local function pauseButtonTap(event)
     if isPaused then
         pauseButton:setLabel("Resume")
         saveStateButton:setEnabled(true)  -- Enable the "Save State" button when paused
-
+        canToggleCells = true  -- Allow cell state toggling
     else
         pauseButton:setLabel("Pause")
         saveStateButton:setEnabled(false)  -- Disable the "Save State" button when resumed
+        canToggleCells = false  -- Disable cell state toggling
         advanceSimulation()  -- Resume the simulation when unpaused
     end
 
@@ -198,6 +213,7 @@ local function initializeGridFromState(gameState)
         end
     end
 end
+
 
 -- start a the game with a new randomized seed
 function startNewGame()

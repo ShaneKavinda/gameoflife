@@ -43,11 +43,38 @@ local function onFileNameTextBoxTap(event)
     errorText.text = ""
 end
 
+
+-- Allows the user to navigate back to the gameplay
+local function cancelSave()
+    composer.gotoScene("gameplay", { effect = "fade", time = 500 })
+end
+
+
+local function onFileNameFocus(event)
+    if event.phase == "began" then
+        -- Text box clicked; do nothing
+    elseif event.phase == "editing" then
+        -- Text box content is being edited; do nothing
+    elseif event.phase == "submitted" then
+        -- Text box submitted 
+        native.setKeyboardFocus(nil)  -- Hide the keyboard
+    end
+end
+
+-- Function to enable the native keyboard when the text box is tapped
+local function onFileNameTap(event)
+    if event.phase == "ended" then
+        -- Set focus to the text box when tapped
+        native.setKeyboardFocus(fileNameTextBox)
+    end
+end
+
+
 function scene:create(event)
     local sceneGroup = self.view
 
-    local background = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, display.contentWidth, display.contentHeight)
-    background:setFillColor(0.5)
+    -- local background = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, display.contentWidth, display.contentHeight)
+    -- background:setFillColor(0.5)
 
     local saveText = display.newText({
         parent = sceneGroup,
@@ -56,8 +83,14 @@ function scene:create(event)
         y = 100,
         fontSize = 24,
     })
+    sceneGroup:insert(saveText)
 
     fileNameTextBox = native.newTextField(display.contentCenterX, 150, 200, 30)
+    fileNameTextBox.inputType = "default"
+    fileNameTextBox.placeholder = "Enter file name"
+    fileNameTextBox:addEventListener("userInput", onFileNameFocus)
+    fileNameTextBox:addEventListener("tap", onFileNameTap)  -- Add tap event listener
+
     sceneGroup:insert(fileNameTextBox)
     fileNameTextBox:addEventListener("tap", onFileNameTextBoxTap)
 
@@ -79,8 +112,27 @@ function scene:create(event)
         enabled = false,
     })
     sceneGroup:insert(errorText)
+
+    local cancelButton = widget.newButton({ -- add a button to cancel and go back to gameplay
+        label = "Cancel",
+        x = display.contentCenterX,
+        y = display.contentHeight - 20,
+        onPress = cancelSave,
+    })
+    sceneGroup:insert(cancelButton)
+end
+
+function scene:hide(event)
+    if event.phase == "will" then
+        -- Remove the text box when the scene is about to hide
+        if fileNameTextBox then
+            fileNameTextBox:removeSelf()
+            fileNameTextBox = nil
+        end
+    end
 end
 
 scene:addEventListener("create", scene)
+scene:addEventListener("hide", scene) 
 
 return scene
