@@ -3,16 +3,20 @@ local scene = composer.newScene()
 
 local widget = require("widget")
 local lfs = require("lfs")  -- Include the "lfs" library for file operations
+local json = require("json")  -- Include the "json" library for JSON parsing
 
-local savedStates = {}  -- Table to store saved game states
+local savedStates = {}  -- Table to store saved game state filenames
+
+local sceneGroup
 local scrollView  -- Declare scrollView to make it accessible across functions
 
 -- Function to list all saved game state files
 local function listSavedStates()
     local path = system.pathForFile("", system.DocumentsDirectory)  -- Get the documents directory path
+    savedStates = {}  -- Clear the list of saved states
     for file in lfs.dir(path) do
         if file:match("%.json$") then
-            table.insert(savedStates, file:sub(1, -6))  -- Remove ".json" extension and add to savedStates
+            table.insert(savedStates, file)  -- Add filenames with .json extension to savedStates
         end
     end
 end
@@ -20,12 +24,41 @@ end
 -- Function to load a selected game state and return to gameplay.lua
 local function loadSelectedState(event)
     local target = event.target
-    local selectedState = target.label  -- Get the selected state's filename
+    local selectedState = target:getLabel()  -- Get the selected state's filename
 
-    -- Store the selected state's filename in a global variable to access it in gameplay.lua
-    composer.setVariable("selectedState", selectedState)
+    -- Create the full file path to the selected state
+    local filePath = system.pathForFile(selectedState, system.DocumentsDirectory)
 
-    composer.gotoScene("gameplay", { effect = "fade", time = 500 })  -- Transition back to gameplay.lua
+    -- Read the JSON data from the selected state file
+    local file = io.open(filePath, "r")
+
+    if file then
+        local jsonString = file:read("*a")  -- Read the entire file as a string
+        io.close(file)
+
+        -- Decode the JSON string into a Lua table
+        local loadedData = json.decode(jsonString)
+
+
+        if loadedData then
+            -- The 'loadedData' variable now contains your loaded Lua table
+            print("JSON data loaded successfully.")
+            composer.setVariable( "gridSize", loadedData[2] )
+            composer.setVariable( "gameState", loadedData[1] )
+            -- You can access the loaded data as needed, e.g., loadedData.gridSize and loadedData.grid
+
+            -- Store the selected state's data in a global variable to access it in gameplay.lua
+            composer.setVariable("loadedGameState", loadedData)
+            composer.removeScene("loadState")
+            composer.gotoScene("gameplay", { effect = "fade", time = 500 })  -- Transition to gameplay.lua
+        else
+            print("Error: Unable to decode JSON data.")
+        end
+    else
+        print("Error: Unable to open the file for reading")
+    end
+
+    return true
 end
 
 -- Allows the user to navigate back to the Menu
@@ -33,62 +66,20 @@ local function cancelLoad()
     composer.gotoScene("menu", { effect = "fade", time = 500 })
 end
 
--- Function to handle the deletion of a saved game state
-local function deleteSavedState(event)
-    local target = event.target
-    local selectedState = target.label  -- Get the selected state's filename
 
-    local filePath = system.pathForFile(selectedState, system.DocumentsDirectory)
-    local success, errorMsg = os.remove(filePath)  -- Try to delete the selected state file
-
-    if success then
-        print("Deleted: " .. selectedState)
-        -- Refresh the list of saved states by re-creating the scrollView
-        sceneGroup:remove(scrollView)
-        savedStates = {}
-        listSavedStates()
-        createScrollView()
-    else
-        print("Error deleting: " .. selectedState)
-        -- Display an error message to inform the user
-        local errorMessage = display.newText({
-            text = "Error deleting file. Try again later.",
-            x = display.contentCenterX,
-            y = display.contentHeight - 20,
-            fontSize = 14,
-        })
-        sceneGroup:insert(errorMessage)
-
-        -- Remove the error message after a delay
-        timer.performWithDelay(2000, function()
-            display.remove(errorMessage)
-        end)
-    end
-end
-
-
--- Function to create a delete button for each saved state
-local function createDeleteButtons()
+-- Function to create the scroll view
+local function createScrollView()
     local yOffset = 0  -- Initialize the vertical offset for positioning buttons
 
-    -- Create buttons for each saved state with a delete option
+    -- Create buttons for each saved state
     for i, stateFilename in ipairs(savedStates) do
         local stateButton = widget.newButton({
             label = stateFilename,
             x = display.contentCenterX,
             y = yOffset + 50,
-            onRelease = loadSelectedState,  -- Modify this to load the state
+            onRelease = loadSelectedState,
         })
-
-        local deleteButton = widget.newButton({
-            label = "Delete",
-            x = stateButton.x + stateButton.width / 2,
-            y = stateButton.y,
-            onRelease = deleteSavedState,  -- Add a delete function
-        })
-
         scrollView:insert(stateButton)
-        scrollView:insert(deleteButton)
         yOffset = yOffset + 60
     end
 
@@ -96,7 +87,7 @@ local function createDeleteButtons()
 end
 
 function scene:create(event)
-    local sceneGroup = self.view
+    sceneGroup = self.view
 
     listSavedStates()  -- List all saved game states in the documents directory
 
@@ -112,26 +103,10 @@ function scene:create(event)
         backgroundColor = { 0, 0, 0 }, -- Set the background color to black
     })
 
-    local yOffset = 0  -- Initialize the vertical offset for positioning buttons
-
-    -- Create buttons for each saved state
-    for i, stateFilename in ipairs(savedStates) do
-        local stateButton = widget.newButton({
-            label = stateFilename,
-            x = display.contentCenterX,
-            y = yOffset + 50,
-            onRelease = loadSelectedState,
-        })
-        scrollView:insert(stateButton)
-        yOffset = yOffset + 60
-    end
-
-    createDeleteButtons()  -- Create delete buttons for each saved state
-    scrollView:setScrollHeight(yOffset)  -- Set the scrollHeight based on the content
+    createScrollView()  -- Create the initial scrollView
 
     sceneGroup:insert(scrollView)
 
-    
     local cancelButton = widget.newButton({
         label = "Cancel",
         x = display.contentCenterX,
@@ -139,7 +114,6 @@ function scene:create(event)
         onPress = cancelLoad,
     })
     sceneGroup:insert(cancelButton)
-
 end
 
 scene:addEventListener("create", scene)

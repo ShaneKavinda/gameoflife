@@ -51,7 +51,7 @@ end
 
 
 -- Function to create cells based on the grid
-local function createCells()
+local function createCells(grid)
     for i = 1, gridSize do
         for j = 1, gridSize do
             local cell = display.newRect(
@@ -61,7 +61,11 @@ local function createCells()
                 cellSize
             )
             cell.anchorX, cell.anchorY = 0.5, 0.5
-            cell:setFillColor(0.2,1.0,0.6)  -- colour if the cell is alive
+            if grid[i][j] == 1 then
+                cell:setFillColor(0.2,1.0,0.6)  -- colour if the cell is alive
+            else
+                cell:setFillColor(0,0,0)
+            end
             cellGroup:insert(cell)
 
              -- Set cell properties for row and column
@@ -176,6 +180,8 @@ end
 
 -- Prompts the user to a new scene to Save the game state
 local function onSaveStateButtonTap(event)
+    local grid = composer.setVariable( "grid", grid )
+    local gridSize = composer.setVariable( "gridSize", gridSize )
     composer.gotoScene("saveState", { effect = "fade", time = 500 })
     return true
 end
@@ -187,37 +193,16 @@ local function gotoMainMenu(event)
     composer.gotoScene( "menu",{effect="fade", time=500} )
 end
 
--- Function to initialize the grid from a provided game state string
-local function initializeGridFromState(gameState)
-    -- Split the gameState string into rows
-    local rows = {}
-    for row in string.gmatch(gameState, "[^\n]+") do
-        table.insert(rows, row)
-    end
 
-    -- Initialize the grid based on the parsed rows
-    for i = 1, gridSize do
-        grid[i] = {}
-        local rowValues = {}
-        for value in string.gmatch(rows[i], "%S+") do
-            table.insert(rowValues, tonumber(value))
-        end
-
-        if #rowValues >= gridSize then
-            for j = 1, gridSize do
-                grid[i][j] = rowValues[j]
-            end
-        else
-            print("Error: Invalid game state format.")
-            -- You might want to handle this error condition in an appropriate way
-        end
-    end
-end
-
-
--- start a the game with a new randomized seed
+-- start a new game with the loaded state or a new randomized seed
 function startNewGame()
-    initializeGridRandomly()
+    local gameState = composer.getVariable( "loadedGameState" )
+    if gameState then
+        gridSize = gameState[2]
+        grid = gameState[1]
+    else
+        initializeGridRandomly()
+    end
     updateDisplay()
 end
 
@@ -227,15 +212,16 @@ function scene:create(event)
     -- Get gridSize and animationSpeed from composer variables
     local gridSize = composer.getVariable("gridSize" )
     local animationSpeed = composer.getVariable( "animationSpeed" )
+    local gameState = composer.getVariable( "loadedGameState" )
 
-    local gameState = composer.getVariable( "gameState" )
     if gameState then
-        initializeGridFromState(gameState)  -- use the loaded game state to initialize the grid
+        gridSize = gameState[2]
+        grid = gameState[1]
     else
         initializeGridRandomly()
     end
 
-    createCells()
+    createCells(grid)
     sceneGroup:insert(cellGroup)
 
     local pauseButton = widget.newButton({

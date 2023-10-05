@@ -3,13 +3,15 @@
 local composer = require("composer")
 local scene = composer.newScene()
 
+local lfs = require("lfs")
 local widget = require("widget")
 local json = require("json")
 
 local fileNameTextBox
 local errorText
+local gameState
 
-local function saveGameState()
+local function saveGameState(gameState)
     local fileName = fileNameTextBox.text
 
     -- Check if the file name is empty
@@ -18,20 +20,14 @@ local function saveGameState()
         return true
     end
 
-    -- Check if the file name already exists
+    -- Check if the file already exists
     local filePath = system.pathForFile(fileName .. ".json", system.DocumentsDirectory)
-    local file = io.open(filePath, "r")
+    local fileExists = lfs.attributes(filePath, "mode")
 
-    if file then
-        io.close(file)
+    if fileExists == "file" then
         errorText.text = "File already exists. Enter a different file name."
         errorText.enabled = true
     else
-        local gameState = {
-            gridSize = gridSize,
-            grid = grid,
-        }
-
         local file = io.open(filePath, "w")
 
         if file then
@@ -44,6 +40,14 @@ local function saveGameState()
         end
     end
 end
+
+
+-- Function that is triggered when save button is tapped.
+local function onSaveButtonTap(event)
+    composer.getVariable( "gameState" )
+    saveGameState(gameState)
+end
+
 
 local function onFileNameTextBoxTap(event)
     errorText.text = ""
@@ -79,8 +83,13 @@ end
 function scene:create(event)
     local sceneGroup = self.view
 
-    -- local background = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, display.contentWidth, display.contentHeight)
-    -- background:setFillColor(0.5)
+    local grid = composer.getVariable( "grid" )
+    local gridSize = composer.getVariable( "gridSize" )
+
+    gameState = {
+        grid,
+        gridSize,
+    }
 
     local saveText = display.newText({
         parent = sceneGroup,
@@ -104,7 +113,7 @@ function scene:create(event)
         label = "Save State",
         x = display.contentCenterX,
         y = 200,
-        onPress = saveGameState,
+        onPress = onSaveButtonTap,
     })
     sceneGroup:insert(saveButton)
 
